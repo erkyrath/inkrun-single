@@ -28,16 +28,17 @@ while (args.length) {
     gamefile = arg;
 }
 
-let story = null;
-let newstylesave = null;
-
-try {
+async function read_gamefile(gamefile)
+{
     let dat = await readFile(gamefile, { encoding: 'utf8' });
 
     /* First we strip the BOM, if there is one. Dunno why JSON.parse
        can't deal with a BOM, but okay. */
     dat = dat.replace(/^\uFEFF/, '');
     
+    let story = null;
+    let newstylesave = null;
+
     let json = JSON.parse(dat);
     let version = parseInt(json["inkVersion"]);
     if (version >= 18) {
@@ -60,9 +61,8 @@ try {
         story = new InkJS.default.Story(json);
         newstylesave = false;
     }
-} catch (err) {
-    console.error(err.message);
-    process.exit();
+
+    return { story, newstylesave };
 }
 
 async function read_stanza(reader)
@@ -81,6 +81,16 @@ async function read_stanza(reader)
     }
 
     throw new Error('stream ended without valid JSON');
+}
+
+let story = null;
+let newstylesave = null;
+
+try {
+    ({ story, newstylesave } = await read_gamefile(gamefile));
+} catch (err) {
+    console.error(err.message);
+    process.exit();
 }
 
 let gen = 0;
