@@ -104,14 +104,19 @@ function handle_input(input)
         return true;
     }
     else {
-        if (input.type == 'hyperlink' && input.window == 1) {
-            let val = input.value;
-            //###
+        if (!(input.type == 'hyperlink' && input.window == 1))
+            return false;
+        let ls = input.value.split(':');
+        if (ls.length != 2)
+            return false;
+        let turn = parseInt(ls[0]);
+        let index = parseInt(ls[1]);
+        if (turn == game_turn && index >= 0 && index < story.currentChoices.length) {
+            story.ChooseChoiceIndex(index);
             return true;
         }
-        else {
-            return false;
-        }
+        //### should re-input, really
+        return false;
     }
 }
 
