@@ -105,27 +105,26 @@ function handle_input(input)
         if (!input.metrics)
             throw new Error('first input had no metrics');
         context.metrics = input.metrics;
-        return true;
+        context.newturn = true;
     }
     else {
         if (!(input.type == 'hyperlink' && input.window == 1))
-            return false;
+            return;
         let ls = input.value.split(':');
         if (ls.length != 2)
-            return false;
+            return;
         let turn = parseInt(ls[0]);
         let index = parseInt(ls[1]);
         if (turn == context.game_turn && index >= 0 && index < story.currentChoices.length) {
             //### stash the choice text
             story.ChooseChoiceIndex(index);
-            return true;
+            context.newturn = true;
         }
         //### should re-input, really
-        return false;
     }
 }
 
-function generate_output(story, newturn)
+function generate_output(story)
 {
     let outlines = [];
     let output = {
@@ -133,7 +132,7 @@ function generate_output(story, newturn)
         gen: context.gen,
     }
 
-    if (!newturn)
+    if (!context.newturn)
         return output;
     
     if (context.gen <= 1) {
@@ -241,11 +240,18 @@ try {
 }
 
 let context = {
+    // GlkOte generation number.
     gen: 0,
+    
+    // GlkOte metrics. (We only care about width and height, because
+    // we will only have one window.)
     metrics: null,
     
-    /* We need to distinguish each turn's hyperlinks. */
+    // We need to distinguish each turn's hyperlinks.
     game_turn: 0,
+
+    // Does this input advance the game_turn?
+    newturn: false,
 };
 
 let input = null;
@@ -270,10 +276,8 @@ if (autorestore) {
     }
 }
 
-let newturn = false;
-
 try {
-    newturn = handle_input(input);
+    handle_input(input);
 } catch (err) {
     console.error(err.message);
     process.exit();
@@ -283,9 +287,9 @@ let output = null;
 
 try {
     context.gen++;
-    if (newturn)
+    if (context.newturn)
         context.game_turn++;
-    output = generate_output(story, newturn);
+    output = generate_output(story);
 }
 catch (err) {
     console.error(err.message);
