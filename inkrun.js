@@ -105,7 +105,6 @@ try {
 }
 
 let gen = 0;
-
 let input = null;
 
 try {
@@ -117,22 +116,23 @@ try {
     process.exit();
 }
 
-let outlines = [];
-let output = {
-    type: 'update',
-    gen: gen,
-    //### omit windows after startup
-    //### catch and hold metrics
-    windows: [
-        { id: 1, type: "buffer", rock: 0,
-          left: 0, top: 0, width: 800, height: 480 }
-    ],
-    content: [
-        { id: 1, text: outlines },
-    ],
-};
+function generate_output()
+{
+    let outlines = [];
+    let output = {
+        type: 'update',
+        gen: gen,
+        //### omit windows after startup
+        //### catch and hold metrics
+        windows: [
+            { id: 1, type: "buffer", rock: 0,
+              left: 0, top: 0, width: 800, height: 480 }
+        ],
+        content: [
+            { id: 1, text: outlines },
+        ],
+    };
 
-try {
     while (story.canContinue) {
         let text = story.Continue();
         let dat = {
@@ -153,6 +153,13 @@ try {
         outlines.push(dat);
     }
 
+    return output;
+}
+
+let output = null;
+
+try {
+    output = generate_output();
 }
 catch (err) {
     console.error(err.message);
