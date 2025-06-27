@@ -160,7 +160,6 @@ function generate_output(story, newturn, game_turn)
             let link = game_turn+':'+ix;
             let dat = {
                 content: [
-                    { style: "note", text: ix+': ' },
                     { style: "note", text: choice, hyperlink: link }
                 ]
             };
