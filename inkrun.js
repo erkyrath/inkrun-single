@@ -97,10 +97,10 @@ async function read_stanza(reader)
 
 function handle_input(input)
 {
-    if (!metrics) {
+    if (!context.metrics) {
         if (!input.metrics)
             throw new Error('first input had no metrics');
-        metrics = input.metrics;
+        context.metrics = input.metrics;
         return true;
     }
     else {
@@ -111,7 +111,8 @@ function handle_input(input)
             return false;
         let turn = parseInt(ls[0]);
         let index = parseInt(ls[1]);
-        if (turn == game_turn && index >= 0 && index < story.currentChoices.length) {
+        if (turn == context.game_turn && index >= 0 && index < story.currentChoices.length) {
+            //### stash the choice text
             story.ChooseChoiceIndex(index);
             return true;
         }
@@ -120,18 +121,18 @@ function handle_input(input)
     }
 }
 
-function generate_output(story, newturn, game_turn)
+function generate_output(story, newturn)
 {
     let outlines = [];
     let output = {
         type: 'update',
-        gen: gen,
+        gen: context.gen,
     }
 
     if (!newturn)
         return output;
     
-    if (gen <= 1) {
+    if (context.gen <= 1) {
         output.windows = [
             { id: 1, type: "buffer", rock: 0,
               left: 0, top: 0, width: 800, height: 480 }
@@ -162,7 +163,7 @@ function generate_output(story, newturn, game_turn)
     else {
         for (let ix=0; ix<story.currentChoices.length; ix++) {
             let choice = story.currentChoices[ix].text;
-            let link = game_turn+':'+ix;
+            let link = context.game_turn+':'+ix;
             let dat = {
                 content: [
                     { style: "note", text: choice, hyperlink: link }
@@ -194,11 +195,13 @@ async function do_autorestore(story)
         story.state.LoadJson(snapshot.ink);
     else
         story.state.jsonToken = snapshot.ink;
-    
-    return { game_turn: snapshot.turn, gen: snapshot.gen, metrics: snapshot.metrics };
+
+    context.metrics = snapshot.metrics;
+    context.game_turn = snapshot.turn;
+    context.gen = snapshot.gen;
 }
 
-async function do_autosave(story, game_turn)
+async function do_autosave(story)
 {
     let filename = path.join(autosavedir, 'autosave.json');
 
@@ -210,12 +213,12 @@ async function do_autosave(story, game_turn)
 
     let snapshot = {
         ink: saveval,
-        turn: game_turn,
-        gen: gen,
+        turn: context.game_turn,
+        gen: context.gen,
     };
     
-    if (metrics) {
-        snapshot.metrics = { width: metrics.width, height: metrics.height };
+    if (context.metrics) {
+        snapshot.metrics = { width: context.metrics.width, height: context.metrics.height };
     }
 
     let json = JSON.stringify(snapshot)+'\n';
@@ -233,12 +236,15 @@ try {
     process.exit();
 }
 
-let gen = 0;
-let metrics = null;
-let input = null;
+let context = {
+    gen: 0,
+    metrics: null,
+    
+    /* We need to distinguish each turn's hyperlinks. */
+    game_turn: 0,
+};
 
-/* We need to distinguish each turn's hyperlinks. */
-let game_turn = 0;
+let input = null;
 
 try {
     let reader = readline.createInterface({ input: process.stdin, terminal: false });
@@ -252,14 +258,11 @@ try {
 if (autorestore) {
     let obj = null;
     try {
-        obj = await do_autorestore(story);
+        await do_autorestore(story);
     }
     catch (err) {
         console.error(err.message);
         process.exit();
-    }
-    if (obj) {
-        ({ game_turn, gen, metrics } = obj);
     }
 }
 
@@ -275,16 +278,16 @@ try {
 let output = null;
 
 try {
-    gen++;
+    context.gen++;
     if (newturn)
-        game_turn++;
-    output = generate_output(story, newturn, game_turn);
+        context.game_turn++;
+    output = generate_output(story, newturn);
 }
 catch (err) {
     console.error(err.message);
     process.exit();
 }
 
-await do_autosave(story, game_turn);
+await do_autosave(story);
 
 console.log(JSON.stringify(output));
