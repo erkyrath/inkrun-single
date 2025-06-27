@@ -144,11 +144,16 @@ function generate_output(story, newturn, game_turn)
 
     while (story.canContinue) {
         let text = story.Continue();
-        //### split on \n
-        let dat = {
-            content: [ { style: "normal", text: text} ]
-        };
-        outlines.push(dat);
+        for (let val of text.split('\n')) {
+            if (val == '') {
+                outlines.push({});
+                continue;
+            }
+            let dat = {
+                content: [ { style: "normal", text: val } ]
+            };
+            outlines.push(dat);
+        }
     }
 
     if (story.currentChoices.length == 0) {
