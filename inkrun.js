@@ -8,6 +8,9 @@ let gamefile = null;
 let autorestore = false;
 let autosavedir = '.';
 
+// Filthy trick to suppress warnings inside the inkjs library.
+console.warn = (arg) => {};
+
 // Super-cheap arg parsing.
 
 let args = process.argv.slice(2);
