@@ -2,6 +2,7 @@
 
 import os from 'os';
 import { readFile } from 'node:fs/promises';
+import readline from 'readline';
 
 let gamefile = null;
 let autorestore = false;
@@ -64,3 +65,45 @@ try {
     process.exit();
 }
 
+async function read_stanza(reader)
+{
+    let buf = '';
+
+    //### check that the first character is open brace
+    for await (let ln of reader) {
+        buf += ln;
+        buf += '\n';
+        try {
+            let obj = JSON.parse(buf);
+            return obj;
+        }
+        catch (err) { }
+    }
+
+    throw new Error('stream ended without valid JSON');
+}
+
+let gen = 0;
+
+let input = null;
+
+try {
+    let reader = readline.createInterface({ input: process.stdin, terminal: false });
+    input = await read_stanza(reader);
+    reader.close();
+} catch (err) {
+    console.error(err.message);
+    process.exit();
+}
+console.log('### input', input);
+
+try {
+    while (story.canContinue) {
+        var text = story.Continue();
+        console.log(text);
+    }
+}
+catch (err) {
+    console.error(err.message);
+    process.exit();
+}
