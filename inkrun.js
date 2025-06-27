@@ -94,28 +94,6 @@ async function read_stanza(reader)
     throw new Error('stream ended without valid JSON');
 }
 
-let story = null;
-let newstylesave = null;
-
-try {
-    ({ story, newstylesave } = await read_gamefile(gamefile));
-} catch (err) {
-    console.error(err.message);
-    process.exit();
-}
-
-let gen = 0;
-let input = null;
-
-try {
-    let reader = readline.createInterface({ input: process.stdin, terminal: false });
-    input = await read_stanza(reader);
-    reader.close();
-} catch (err) {
-    console.error(err.message);
-    process.exit();
-}
-
 function generate_output()
 {
     let outlines = [];
@@ -154,6 +132,28 @@ function generate_output()
     }
 
     return output;
+}
+
+let story = null;
+let newstylesave = null;
+
+try {
+    ({ story, newstylesave } = await read_gamefile(gamefile));
+} catch (err) {
+    console.error(err.message);
+    process.exit();
+}
+
+let gen = 0;
+let input = null;
+
+try {
+    let reader = readline.createInterface({ input: process.stdin, terminal: false });
+    input = await read_stanza(reader);
+    reader.close();
+} catch (err) {
+    console.error(err.message);
+    process.exit();
 }
 
 let output = null;
