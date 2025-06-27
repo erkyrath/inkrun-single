@@ -2,7 +2,7 @@
 
 import os from 'os';
 import path from 'path';
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile, writeFile, access } from 'node:fs/promises';
 import readline from 'readline';
 
 let gamefile = null;
@@ -95,6 +95,18 @@ async function read_stanza(reader)
     throw new Error('stream ended without valid JSON');
 }
 
+function handle_input(input)
+{
+    if (true) {
+        if (!input.metrics)
+            throw new Error('first input had no metrics');
+        metrics = input.metrics;
+    }
+    else {
+        //###
+    }
+}
+
 function generate_output(story, game_turn)
 {
     let outlines = [];
@@ -141,6 +153,28 @@ function generate_output(story, game_turn)
     return output;
 }
 
+async function do_autorestore(story)
+{
+    let filename = path.join(autosavedir, 'autosave.json');
+
+    try {
+        await access(filename);
+    }
+    catch {
+        return null;
+    }
+
+    let dat = await readFile(filename, { encoding: 'utf8' });
+    let snapshot = JSON.parse(dat);
+
+    if (newstylesave)
+        story.state.LoadJson(snapshot.ink);
+    else
+        story.state.jsonToken = snapshot.ink;
+    
+    return { game_turn: snapshot.turn, gen: snapshot.gen, metrics: snapshot.metrics };
+}
+
 async function do_autosave(story, game_turn)
 {
     let filename = path.join(autosavedir, 'autosave.json');
@@ -154,8 +188,13 @@ async function do_autosave(story, game_turn)
     let snapshot = {
         ink: saveval,
         turn: game_turn,
+        gen: gen,
     };
     
+    if (metrics) {
+        snapshot.metrics = { width: metrics.width, height: metrics.height };
+    }
+
     let json = JSON.stringify(snapshot)+'\n';
 
     await writeFile(filename, json, { encoding: 'utf8' });
@@ -172,6 +211,7 @@ try {
 }
 
 let gen = 0;
+let metrics = null;
 let input = null;
 
 /* We need to distinguish each turn's hyperlinks. */
@@ -181,6 +221,27 @@ try {
     let reader = readline.createInterface({ input: process.stdin, terminal: false });
     input = await read_stanza(reader);
     reader.close();
+} catch (err) {
+    console.error(err.message);
+    process.exit();
+}
+
+if (autorestore) {
+    let obj = null;
+    try {
+        obj = await do_autorestore(story);
+    }
+    catch (err) {
+        console.error(err.message);
+        process.exit();
+    }
+    if (obj) {
+        ({ game_turn, gen, metrics } = obj);
+    }
+}
+
+try {
+    handle_input(input);
 } catch (err) {
     console.error(err.message);
     process.exit();
