@@ -43,6 +43,10 @@ async function read_gamefile(gamefile)
     let newstylesave = null;
 
     let json = JSON.parse(dat);
+    if (!json["inkVersion"]) {
+        throw new Error('does not appear to be an ink.json file');
+    }
+    
     let version = parseInt(json["inkVersion"]);
     if (version >= 18) {
         let InkJS = await import('./inkjs/ink.min.js');
@@ -114,6 +118,7 @@ let output = {
     type: 'update',
     gen: gen,
     //### omit windows after startup
+    //### catch and hold metrics
     windows: [
         { id: 1, type: "buffer", rock: 0,
           left: 0, top: 0, width: 800, height: 480 }
