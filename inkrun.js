@@ -97,35 +97,47 @@ async function read_stanza(reader)
 
 function handle_input(input)
 {
-    if (true) {
+    if (!metrics) {
         if (!input.metrics)
             throw new Error('first input had no metrics');
         metrics = input.metrics;
+        return true;
     }
     else {
-        //###
+        if (input.type == 'hyperlink' && input.window == 1) {
+            let val = input.value;
+            //###
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 }
 
-function generate_output(story, game_turn)
+function generate_output(story, newturn, game_turn)
 {
     let outlines = [];
     let output = {
         type: 'update',
         gen: gen,
-        //### omit windows after startup
-        //### catch and hold metrics
-        windows: [
-            { id: 1, type: "buffer", rock: 0,
-              left: 0, top: 0, width: 800, height: 480 }
-        ],
-        content: [
-            { id: 1, text: outlines },
-        ],
-    };
+    }
+
+    if (!newturn)
+        return output;
+    
+    //### omit windows after startup
+    output.windows = [
+        { id: 1, type: "buffer", rock: 0,
+          left: 0, top: 0, width: 800, height: 480 }
+    ];
+    output.content = [
+        { id: 1, text: outlines },
+    ];
 
     while (story.canContinue) {
         let text = story.Continue();
+        //### split on \n
         let dat = {
             content: [ { style: "normal", text: text} ]
         };
@@ -240,8 +252,10 @@ if (autorestore) {
     }
 }
 
+let newturn = false;
+
 try {
-    handle_input(input);
+    newturn = handle_input(input);
 } catch (err) {
     console.error(err.message);
     process.exit();
@@ -250,8 +264,10 @@ try {
 let output = null;
 
 try {
-    game_turn++;
-    output = generate_output(story, game_turn);
+    gen++;
+    if (newturn)
+        game_turn++;
+    output = generate_output(story, newturn, game_turn);
 }
 catch (err) {
     console.error(err.message);
