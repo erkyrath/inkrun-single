@@ -81,10 +81,14 @@ async function read_stanza(reader)
 {
     let buf = '';
 
-    //### check that the first character is open brace
     for await (let ln of reader) {
         buf += ln;
         buf += '\n';
+
+        let val = buf.trim();
+        if (val.length && !val.startsWith('{')) 
+            throw new Error('stream did not begin with an open brace');
+        
         try {
             let obj = JSON.parse(buf);
             return obj;
