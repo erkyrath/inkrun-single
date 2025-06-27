@@ -126,11 +126,13 @@ function generate_output(story, newturn, game_turn)
     if (!newturn)
         return output;
     
-    //### omit windows after startup
-    output.windows = [
-        { id: 1, type: "buffer", rock: 0,
-          left: 0, top: 0, width: 800, height: 480 }
-    ];
+    if (gen <= 1) {
+        output.windows = [
+            { id: 1, type: "buffer", rock: 0,
+              left: 0, top: 0, width: 800, height: 480 }
+        ];
+    }
+    
     output.content = [
         { id: 1, text: outlines },
     ];
