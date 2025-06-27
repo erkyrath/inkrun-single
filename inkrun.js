@@ -105,15 +105,46 @@ try {
     console.error(err.message);
     process.exit();
 }
-console.log('### input', input);
+
+let outlines = [];
+let output = {
+    type: 'update',
+    gen: gen,
+    //### omit windows after startup
+    windows: [
+        { id: 1, type: "buffer", rock: 0,
+          left: 0, top: 0, width: 800, height: 480 }
+    ],
+    content: [
+        { id: 1, text: outlines },
+    ],
+};
 
 try {
     while (story.canContinue) {
-        var text = story.Continue();
-        console.log(text);
+        let text = story.Continue();
+        let dat = {
+            content: [ { style: "normal", text: text} ]
+        };
+        outlines.push(dat);
     }
+
+    for (let ix=0; ix<story.currentChoices.length; ix++) {
+        let choice = story.currentChoices[ix].text;
+        let link = gen+':'+ix;
+        let dat = {
+            content: [
+                { style: "note", text: ix+': ' },
+                { style: "note", text: choice, hyperlink: link }
+            ]
+        };
+        outlines.push(dat);
+    }
+
 }
 catch (err) {
     console.error(err.message);
     process.exit();
 }
+
+console.log(JSON.stringify(output));
