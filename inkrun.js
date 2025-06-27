@@ -135,7 +135,7 @@ function generate_output(story, game_turn)
             };
             outlines.push(dat);
         }
-        //### input
+        output.input = [ { id: 1, gen: 0, hyperlink: true } ];
     }
 
     return output;
