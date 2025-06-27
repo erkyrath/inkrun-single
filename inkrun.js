@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
 import os from 'os';
-import { readFile } from 'node:fs/promises';
+import path from 'path';
+import { readFile, writeFile } from 'node:fs/promises';
 import readline from 'readline';
 
 let gamefile = null;
@@ -94,7 +95,7 @@ async function read_stanza(reader)
     throw new Error('stream ended without valid JSON');
 }
 
-function generate_output()
+function generate_output(story, game_turn)
 {
     let outlines = [];
     let output = {
@@ -119,19 +120,45 @@ function generate_output()
         outlines.push(dat);
     }
 
-    for (let ix=0; ix<story.currentChoices.length; ix++) {
-        let choice = story.currentChoices[ix].text;
-        let link = gen+':'+ix;
-        let dat = {
-            content: [
-                { style: "note", text: ix+': ' },
-                { style: "note", text: choice, hyperlink: link }
-            ]
-        };
-        outlines.push(dat);
+    if (story.currentChoices.length == 0) {
+        output.exit = true;
+    }
+    else {
+        for (let ix=0; ix<story.currentChoices.length; ix++) {
+            let choice = story.currentChoices[ix].text;
+            let link = game_turn+':'+ix;
+            let dat = {
+                content: [
+                    { style: "note", text: ix+': ' },
+                    { style: "note", text: choice, hyperlink: link }
+                ]
+            };
+            outlines.push(dat);
+        }
+        //### input
     }
 
     return output;
+}
+
+async function do_autosave(story, game_turn)
+{
+    let filename = path.join(autosavedir, 'autosave.json');
+
+    let saveval = undefined;
+    if (newstylesave)
+        saveval = story.state.ToJson();
+    else
+        saveval = story.state.jsonToken;
+
+    let snapshot = {
+        ink: saveval,
+        turn: game_turn,
+    };
+    
+    let json = JSON.stringify(snapshot)+'\n';
+
+    await writeFile(filename, json, { encoding: 'utf8' });
 }
 
 let story = null;
@@ -147,6 +174,9 @@ try {
 let gen = 0;
 let input = null;
 
+/* We need to distinguish each turn's hyperlinks. */
+let game_turn = 0;
+
 try {
     let reader = readline.createInterface({ input: process.stdin, terminal: false });
     input = await read_stanza(reader);
@@ -159,11 +189,14 @@ try {
 let output = null;
 
 try {
-    output = generate_output();
+    game_turn++;
+    output = generate_output(story, game_turn);
 }
 catch (err) {
     console.error(err.message);
     process.exit();
 }
+
+await do_autosave(story, game_turn);
 
 console.log(JSON.stringify(output));
