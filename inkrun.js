@@ -48,6 +48,10 @@ async function read_gamefile(gamefile)
     }
     
     let version = parseInt(json["inkVersion"]);
+    if (Number.isNaN(version)) {
+        throw new Error('ink.json version is not a number');
+    }
+    
     if (version >= 18) {
         let InkJS = await import('./inkjs/ink.min.js');
         story = new InkJS.default.Story(json);
