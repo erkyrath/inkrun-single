@@ -204,6 +204,8 @@ function generate_output(story)
     return output;
 }
 
+// Attempt to restore from a state file. If there is none, silently leave
+// the story in its initial state.
 async function do_autorestore(story)
 {
     let filename = path.join(autosavedir, 'autosave.json');
@@ -212,7 +214,7 @@ async function do_autorestore(story)
         await access(filename);
     }
     catch {
-        return null;
+        return;
     }
 
     let dat = await readFile(filename, { encoding: 'utf8' });
@@ -228,6 +230,7 @@ async function do_autorestore(story)
     context.gen = snapshot.gen;
 }
 
+// Save to state file.
 async function do_autosave(story)
 {
     let filename = path.join(autosavedir, 'autosave.json');
@@ -252,6 +255,8 @@ async function do_autosave(story)
 
     await writeFile(filename, json, { encoding: 'utf8' });
 }
+
+// Let's get to work!
 
 let story = null;
 let newstylesave = null;
