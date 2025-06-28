@@ -105,11 +105,14 @@ function handle_input(input)
         if (!input.metrics)
             throw new Error('first input had no metrics');
         context.metrics = input.metrics;
+        context.newinput = true;
         context.newturn = true;
     }
     else {
         if (!(input.type == 'hyperlink' && input.window == 1))
             return;
+        context.newinput = true;
+        
         let ls = input.value.split(':');
         if (ls.length != 2)
             return;
@@ -120,7 +123,6 @@ function handle_input(input)
             story.ChooseChoiceIndex(index);
             context.newturn = true;
         }
-        //### should re-input, really
     }
 }
 
@@ -132,51 +134,57 @@ function generate_output(story)
         gen: context.gen,
     }
 
-    if (!context.newturn)
-        return output;
-    
     if (context.gen <= 1) {
         output.windows = [
             { id: 1, type: "buffer", rock: 0,
               left: 0, top: 0, width: 800, height: 480 }
         ];
     }
-    
-    output.content = [
-        { id: 1, text: outlines },
-    ];
-
-    while (story.canContinue) {
-        let text = story.Continue();
-        for (let val of text.split('\n')) {
-            if (val == '') {
-                outlines.push({});
-                continue;
+        
+    if (context.newturn) {
+        while (story.canContinue) {
+            let text = story.Continue();
+            for (let val of text.split('\n')) {
+                if (val == '') {
+                    outlines.push({});
+                    continue;
+                }
+                let dat = {
+                    content: [ { style: "normal", text: val } ]
+                };
+                outlines.push(dat);
             }
-            let dat = {
-                content: [ { style: "normal", text: val } ]
-            };
-            outlines.push(dat);
+        }
+        
+        if (story.currentChoices.length == 0) {
+            output.exit = true;
+        }
+        else {
+            for (let ix=0; ix<story.currentChoices.length; ix++) {
+                let choice = story.currentChoices[ix].text;
+                let link = context.game_turn+':'+ix;
+                let dat = {
+                    content: [
+                        { style: "note", text: choice, hyperlink: link }
+                    ]
+                };
+                outlines.push(dat);
+            }
         }
     }
 
-    if (story.currentChoices.length == 0) {
-        output.exit = true;
-    }
-    else {
-        for (let ix=0; ix<story.currentChoices.length; ix++) {
-            let choice = story.currentChoices[ix].text;
-            let link = context.game_turn+':'+ix;
-            let dat = {
-                content: [
-                    { style: "note", text: choice, hyperlink: link }
-                ]
-            };
-            outlines.push(dat);
+    if (context.newinput) {
+        if (story.currentChoices.length > 0) {
+            output.input = [ { id: 1, gen: 0, hyperlink: true } ];
         }
-        output.input = [ { id: 1, gen: 0, hyperlink: true } ];
     }
 
+    if (outlines.length) {
+        output.content = [
+            { id: 1, text: outlines },
+        ];
+    }
+    
     return output;
 }
 
@@ -249,6 +257,9 @@ let context = {
     
     // We need to distinguish each turn's hyperlinks.
     game_turn: 0,
+
+    // Does this input complete hyperlink input?
+    newinput: false,
 
     // Does this input advance the game_turn?
     newturn: false,
