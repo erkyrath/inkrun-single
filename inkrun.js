@@ -45,9 +45,15 @@ async function read_gamefile(gamefile)
 {
     let dat = await readFile(gamefile, { encoding: 'utf8' });
 
-    /* First we strip the BOM, if there is one. Dunno why JSON.parse
-       can't deal with a BOM, but okay. */
-    dat = dat.replace(/^\uFEFF/, '');
+    /* Strip off anything before or after the curly braces.
+       (Ink files are often found in JSONP format, prefixed with
+       "var storyContent =". Or there might be a BOM.) */
+    let startpos = dat.indexOf('{');
+    let endpos = dat.lastIndexOf('}');
+    if (startpos < 0 || endpos < 0) {
+        throw new Error('does not appear to be a JSON file');
+    }
+    dat = dat.slice(startpos, endpos+1);
     
     let story = null;
     let newstylesave = null;
