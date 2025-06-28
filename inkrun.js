@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 
-# A single-turn GlkOte wrapper for the InkJS interpreter
-#   Andrew Plotkin <erkyrath@eblong.com>
-#   The inkrun.js script is in the public domain.
-#   The InkJS interpreter, included in this repository, is distributed
-#   under the MIT license. See: https://github.com/y-lohse/inkjs
+// A single-turn GlkOte wrapper for the InkJS interpreter
+//   Andrew Plotkin <erkyrath@eblong.com>
+//
+//   The inkrun.js script is in the public domain.
+//   The InkJS interpreter, included in this repository, is distributed
+//   under the MIT license. See: https://github.com/y-lohse/inkjs
 
 import os from 'os';
 import path from 'path';
@@ -12,7 +13,7 @@ import { readFile, writeFile, access } from 'node:fs/promises';
 import readline from 'readline';
 
 let gamefile = null;
-let autorestore = false;
+let autorestore = true;
 let autosavedir = '.';
 
 // Filthy trick to suppress warnings inside the inkjs library.
@@ -23,8 +24,8 @@ console.warn = (arg) => {};
 let args = process.argv.slice(2);
 while (args.length) {
     let arg = args.shift();
-    if (arg == '--autorestore') {
-        autorestore = true;
+    if (arg == '--start') {
+        autorestore = false;
         continue;
     }
     if (arg == '--autodir') {
