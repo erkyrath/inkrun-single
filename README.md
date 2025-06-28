@@ -9,6 +9,7 @@ This script is meant to be used with the [Discoggin][] Discord bot.
 [InkJS]: https://github.com/y-lohse/inkjs
 [Discoggin]: https://github.com/iftechfoundation/discoggin
 [GlkOte]: https://eblong.com/zarf/glk/glkote/docs.html
+[GlkOteInit]: https://eblong.com/zarf/glk/glkote/docs.html#input
 
 ## Usage
 
@@ -16,9 +17,9 @@ This script is meant to be used with the [Discoggin][] Discord bot.
 inkrun.js [ --start ] [ --autodir DIR ] GAME.ink.json
 ```
 
-If `--start` is used, we start the Ink game and display its initial text. 
+If `--start` is used, we start the Ink game, wait for the [`init`][GlkOteInit] event, and display the game's initial text. 
 
-If `--start` is *not* used, we attempt to load the Ink game state from a file called `autosave.json`. (Use `--autodir` to determine what directory this file is found in.) 
+If `--start` is *not* used, we attempt to load the Ink game state from a file called `autosave.json`. (Use `--autodir` to determine what directory this file is found in.) Then we wait for a [`hyperlink`][GlkOteInit] event, select the choice, and display the game's response.
 
 [Node.js][] must be available to run this script, but it does not use any Node modules aside from what's built into the included `ink.min.js`.
 
