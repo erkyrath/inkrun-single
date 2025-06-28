@@ -32,6 +32,8 @@ while (args.length) {
     gamefile = arg;
 }
 
+// Read the game file (.ink.json); load the appropriate version of the
+// inkjs library; create the Story.
 async function read_gamefile(gamefile)
 {
     let dat = await readFile(gamefile, { encoding: 'utf8' });
@@ -77,6 +79,9 @@ async function read_gamefile(gamefile)
     return { story, newstylesave };
 }
 
+// Read one JSON stanza from the readline object (which is wrapped around
+// stdin). As usual, we assume that the stanza ends with a newline, but
+// newlines *within* the stanza are okay.
 async function read_stanza(reader)
 {
     let buf = '';
@@ -99,6 +104,8 @@ async function read_stanza(reader)
     throw new Error('stream ended without valid JSON');
 }
 
+// Accept a GlkOte input object. If it's a hyperlink event,
+// advance the story.
 function handle_input(input)
 {
     if (!context.metrics) {
@@ -126,6 +133,7 @@ function handle_input(input)
     }
 }
 
+// Generate a GlkOut output object.
 function generate_output(story)
 {
     let outlines = [];
