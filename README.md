@@ -11,7 +11,7 @@ This script is meant to be used with the [Discoggin][] Discord bot.
 [GlkOte]: https://eblong.com/zarf/glk/glkote/docs.html
 [GlkOteInit]: https://eblong.com/zarf/glk/glkote/docs.html#input
 
-[Node.js][] must be available to run this script, but it does not use any Node modules aside from what's built into the included `ink.min.js`.
+[Node.js][] must be available to run this script. It does not use any Node modules aside from what's built into the included `ink.min.js`.
 
 [Node.js]: https://nodejs.org/
 
