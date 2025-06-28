@@ -119,9 +119,9 @@ function handle_input(input)
         let turn = parseInt(ls[0]);
         let index = parseInt(ls[1]);
         if (turn == context.game_turn && index >= 0 && index < story.currentChoices.length) {
-            //### stash the choice text
-            story.ChooseChoiceIndex(index);
+            context.choicetext = story.currentChoices[index].text;
             context.newturn = true;
+            story.ChooseChoiceIndex(index);
         }
     }
 }
@@ -142,6 +142,14 @@ function generate_output(story)
     }
         
     if (context.newturn) {
+        if (context.choicetext) {
+            let dat = {
+                content: [ { style: "input", text: context.choicetext } ]
+            };
+            outlines.push(dat);
+            outlines.push({});
+        }
+        
         while (story.canContinue) {
             let text = story.Continue();
             for (let val of text.split('\n')) {
@@ -257,6 +265,9 @@ let context = {
     
     // We need to distinguish each turn's hyperlinks.
     game_turn: 0,
+
+    // Text to repeat at the beginning of the output.
+    choicetext: null,
 
     // Does this input complete hyperlink input?
     newinput: false,
